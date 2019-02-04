@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import moment, { Moment } from "moment"
+import moment from "moment"
 import "./App.scss"
 
 class App extends Component<any, any> {
@@ -35,33 +35,33 @@ class App extends Component<any, any> {
     })
   }
 
+  onMonthChange = (e: any) => {
+    const monthIndex = moment.months().indexOf(e.target.value)
+    this.setState({
+      editingMonth: false
+    })
+
+    this.setDate(monthIndex, this.state.currentYear)
+  }
+
+  onYearSave = (e: any, clear = false) => {
+    if (e.keyCode == 13 || clear) {
+      this.setState({
+        editingYear: false
+      })
+      this.setDate(this.state.monthIndex, this.state.currentYear)
+    }
+  }
+
   onChange = (e: any) => {
     this.setState({
       [`current${e.target.name}`]: e.target.value
     })
   }
 
-  onKeyDown = (e: any, dont = false) => {
-    if (e.keyCode === 13 || dont) {
-      const newState: any = {
-        [`editing${e.target.name}`]: false,
-      }
-
-      if (e.target.name === "Month") {
-        const index = moment.months().indexOf(e.target.value)
-        if (index > -1) {
-          newState["monthIndex"] = index
-        }
-      }
-
-      this.setState(newState)
-
-      this.setDate(typeof newState.monthIndex !== 'undefined' ? newState.monthIndex : this.state.monthIndex, this.state.currentYear)
-    }
-  }
-
   render() {
     const { monthIndex, currentMonth, startOfMonth, endOfMonth, currentYear, editingYear, editingMonth } = this.state
+
     return (
       <div className="container">
         <div className="header">
@@ -70,31 +70,24 @@ class App extends Component<any, any> {
           </a>
           <div className="title">
             {editingMonth ? (
-              <input
-                className="update-field"
-                name="Month"
-                onKeyDown={this.onKeyDown}
-                onChange={this.onChange}
-                type="text"
-                value={currentMonth}
-                onFocus={e => e.target.select()}
-                onBlur={e => this.onKeyDown(e, true)}
-                autoFocus
-              />
+              <select value={currentMonth} onChange={this.onMonthChange} name="Month" id="Month">
+                {moment.months().map(month => (
+                  <option key={month} value={month}>{month}</option>
+                ))}
+              </select>
             ) : (
-              <span onDoubleClick={() => this.openEdit("Month")}>{ currentMonth }</span>
+              <span onClick={() => this.openEdit("Month")}>{ currentMonth }</span>
             )}
             {" "}
             {editingYear ? (
               <input
-                className="update-field"
                 name="Year"
-                onKeyDown={this.onKeyDown}
+                onKeyDown={this.onYearSave}
                 onChange={this.onChange}
                 type="number"
                 value={currentYear}
                 onFocus={e => e.target.select()}
-                onBlur={e => this.onKeyDown(e, true)}
+                onBlur={e => this.onYearSave(e, true)}
                 autoFocus
               />
             ): (
@@ -112,7 +105,7 @@ class App extends Component<any, any> {
           ))}
         </div>
         <div className="days">
-          {Array(startOfMonth.isoWeekday()).fill("").map((_, i) => (
+          {Array(startOfMonth.isoWeekday() >= 7 ? 0 : startOfMonth.isoWeekday()).fill("").map((_, i) => (
             <p key={i}>{""}</p>
           ))}
           {Array(endOfMonth.daysInMonth()).fill("").map((_, i) => (
@@ -125,3 +118,15 @@ class App extends Component<any, any> {
 }
 
 export default App
+
+// <input
+// className="update-field"
+// name="Month"
+// onKeyDown={this.onKeyDown}
+// onChange={this.onChange}
+// type="text"
+// value={currentMonth}
+// onFocus={e => e.target.select()}
+// onBlur={e => this.onKeyDown(e, true)}
+// autoFocus
+// />
